@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>موجه الروابط - URL Redirector</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 500px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        h1 {
+            color: #333;
+            margin-bottom: 10px;
+            font-size: 28px;
+        }
+        
+        .subtitle {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 30px;
+        }
+        
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+        
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 1s linear infinite;
+        }
+        
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        
+        .info-box {
+            background: #f0f0f0;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            font-size: 14px;
+            color: #555;
+        }
+        
+        .source-info {
+            background: #e8f5e9;
+            padding: 12px;
+            border-radius: 8px;
+            color: #2e7d32;
+            font-weight: 500;
+            margin-bottom: 15px;
+        }
+        
+        .error {
+            color: #c62828;
+            font-size: 14px;
+            padding: 15px;
+            background: #ffebee;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .success {
+            color: #1b5e20;
+            font-size: 14px;
+            padding: 15px;
+            background: #e8f5e9;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        button {
+            flex: 1;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-dashboard {
+            background: #667eea;
+            color: white;
+        }
+        
+        .btn-dashboard:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+        }
+        
+        .btn-test {
+            background: #764ba2;
+            color: white;
+        }
+        
+        .btn-test:hover {
+            background: #653a8a;
+            transform: translateY(-2px);
+        }
+        
+        .url-display {
+            background: #f5f5f5;
+            padding: 15px;
+            border-radius: 8px;
+            word-break: break-all;
+            font-size: 12px;
+            color: #666;
+            font-family: monospace;
+            margin-top: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔗 موجه الروابط</h1>
+        <p class="subtitle">HTTP Referrer Redirector</p>
+        
+        <div id="content">
+            <div class="loading">
+                <div class="spinner"></div>
+                <p>جاري معالجة الطلب...</p>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const targetUrl = urlParams.get('url');
+            const content = document.getElementById('content');
+            
+            if (!targetUrl) {
+                // لا يوجد رابط مطلوب - عرض رسالة الخطأ
+                content.innerHTML = `
+                    <div class="error">
+                        ❌ لم يتم توفير رابط للتوجيه!<br>
+                        استخدم: ?url=https://example.com
+                    </div>
+                    <div class="url-display">
+                        الاستخدام: <br>
+                        ${window.location.origin}/?url=YOUR_TARGET_URL
+                    </div>
+                    <div class="button-group">
+                        <button class="btn-dashboard" onclick="window.location.href='dashboard.html'">
+                            📊 لوحة التحكم
+                        </button>
+                    </div>
+                `;
+                return;
+            }
+            
+            // اختيار مصدر عشوائي
+            const source = getRandomSource();
+            
+            // حفظ بيانات الزيارة
+            saveVisit(targetUrl, source);
+            
+            // عرض معلومات الزيارة
+            content.innerHTML = `
+                <div class="success">
+                    ✅ تم اختيار مصدر عشوائي بنجاح
+                </div>
+                <div class="source-info">
+                    📍 المصدر: <strong>${source.name}</strong>
+                </div>
+                <div class="info-box">
+                    <strong>الرابط المطلوب:</strong><br>
+                    <span style="word-break: break-all;">${targetUrl}</span>
+                </div>
+                <p style="color: #999; font-size: 13px; margin-top: 15px;">
+                    جاري التوجيه خلال 3 ثوان...
+                </p>
+                <div class="button-group">
+                    <button class="btn-test" onclick="window.location.href='${targetUrl}'">
+                        ➜ توجيه الآن
+                    </button>
+                    <button class="btn-dashboard" onclick="window.location.href='dashboard.html'">
+                        📊 لوحة التحكم
+                    </button>
+                </div>
+            `;
+            
+            // إعادة توجيه تلقائي بعد 3 ثوان
+            setTimeout(() => {
+                redirectWithSource(targetUrl, source.url);
+            }, 3000);
+        });
+    </script>
+</body>
+</html>

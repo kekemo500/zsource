@@ -1,3 +1,5 @@
 theme: jekyll-theme-minimal
 title: HTTP Referrer Redirector
+
 description: نظام توجيه الروابط مع تتبع المصادر والإحصائيات
+baseurl: /zsource
